@@ -33,13 +33,24 @@ Alright, fine so why would I want to know this?
 
 If we do the analysis of cities in the Netherlands and their humidex and winter temperature, I would expect practically no differences between cities.
 
-Lets go:
+Randall Munroe (author of the XKCD comic) uses the winter temperature and humidex to classify countries. I use the average temperature over december, januari and februari for winter temperature and calculate the humidex using the [comf package](https://cran.r-project.org/web/packages/comf/index.html). This humidex is a combination of humidity and temperature.
 
-Wintertemperature
+The [humidex](https://en.wikipedia.org/wiki/Humidex) (short for humidity index) is an index number used by Canadian meteorologists to describe how hot the weather feels to the average person, by combining the effect of heat and humidity. The term humidex is a Canadian innovation coined in 1965.
 
-First determine all the cities
+Range of humidex: Scale of comfort:\[2\]\[3\]
 
-I just took all the available weatherstations provided by the Dutch weather service (KNMI, --- Royal Netherlands, Metereological Institute). The weatherservice has a nice interactive download page where you can specify what you want. There is also a REST api, but this works too.
+-   20 to 29: Little to no discomfort
+-   30 to 39: Some discomfort
+-   40 to 45: Great discomfort; avoid exertion
+-   Above 45: Dangerous; heat stroke quite possible
+
+### First determine all the cities
+
+I just took all the available weatherstations provided by the Dutch weather service (KNMI, --- Royal Netherlands, Metereological Institute). There are 46 stations in the Netherlands.
+
+The weatherservice has a nice interactive download page where you can specify what you want (hourly, daily, which stations what things). There is also a REST api, but this works fine for one-off projects.
+
+### What is in the file?
 
 ``` r
 library(tidyverse)
@@ -52,7 +63,7 @@ read_lines("data/KNMI_20171018.txt",n_max = 5)
     ## [4] "# "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
     ## [5] "# STN      LON(east)   LAT(north)     ALT(m)  NAME"
 
-The first part is not so interesting.
+The first part is not so interesting. But the comments describing the stations and their position is.
 
 ``` r
 read_lines("data/KNMI_20171018.txt",n_max = 5,skip = 4)
@@ -64,7 +75,7 @@ read_lines("data/KNMI_20171018.txt",n_max = 5,skip = 4)
     ## [4] "# 215:         4.437       52.141      -1.10  VOORSCHOTEN"
     ## [5] "# 225:         4.555       52.463       4.40  IJMUIDEN"
 
-This is all just helpfull information The real data starts later on:
+The real data starts later on:
 
 ``` r
 stations <- read_csv("data/KNMI_20171018.txt",skip = 64, 
@@ -102,6 +113,8 @@ We have those in the form of daily\_avg temp, and daily\_hum (although this one 
 
 hmm that makes no sense I get values of hundreds. and above 45 is dangerous. Of course I'm an idiot and the daily temperature was in centicelsius[1].
 
+I calculate the summer and wintervalues and recombine the data.
+
 ``` r
 library(comf)
 wintervalues <- winter %>% 
@@ -115,14 +128,17 @@ summervalues <- summer %>%
 combined <- full_join(wintervalues, summervalues, by = "STN")
 ```
 
-Lets combine with the names and postitions.
+Lets combine with the names and GPS positions.
 
 ``` r
 names_pos <- read_csv("data/names_positions")
 result <- left_join(combined, names_pos, by = "STN")
 ```
 
-plot like xkcd I am basically just following the script of Mäelle here, because it is so good!
+plot like xkcd
+--------------
+
+I am basically following the script of Mäelle here, because it is so good! On windows installation of the font doesn't work as advertised. Download the font and double click on it. Windows smart screen asks if you want to install the font and you OK it. This could be a security risk: only install things with admin privilege if you trust the source!
 
 ``` r
 library("xkcd")
@@ -137,8 +153,7 @@ set.seed(3456)
 ggplot(result,
        aes(humidex_avg, wintertemp)) +
   geom_point() +
-  geom_text_repel(aes(label = NAME),
-                   family = "xkcd", 
+  geom_text_repel(aes(label = NAME), family = "xkcd", 
                    max.iter = 50000, size = 3)+
   ggtitle("Where to live in The Netherlands \nbased on your temperature preferences",
           subtitle = "Data from KNMI, 2016-2017") +
@@ -179,15 +194,16 @@ D_CARI <- tribble(
 set.seed(3456)
 ggplot(result,
        aes(humidex_avg, wintertemp)) +
-  geom_point() +
-  
+  geom_point(alpha = .7) +
   geom_text_repel(aes(label = NAME),
                    family = "xkcd", 
                    max.iter = 50000, size = 2)+
   geom_text_repel(data = USA, aes(humidex_avg, wintertemp, label = NAME), family = "xkcd", 
                    max.iter = 50000, size = 2, color = "blue")+
+    geom_point(data = USA, aes(humidex_avg, wintertemp), color = "blue")+
     geom_text_repel(data = SPAIN, aes(humidex_avg, wintertemp, label = NAME), family = "xkcd", 
                    max.iter = 50000, size = 2, color = "red")+
+    geom_point(data = SPAIN, aes(humidex_avg, wintertemp),color = "red")+
     geom_text_repel(data = D_CARI, aes(humidex_avg, wintertemp, label = NAME), family = "xkcd", 
                    max.iter = 50000, size = 2, color = "orange")+
     geom_point(data = D_CARI, aes(humidex_avg, wintertemp), color = "orange")+
