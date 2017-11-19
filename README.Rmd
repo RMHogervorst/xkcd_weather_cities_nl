@@ -8,23 +8,24 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
 
 According to this [post by Maële Salmon](http://www.masalmon.eu/2017/11/16/wheretoliveus/)
-inspired by xkcd. we can determine ideal city by looking at wintertemperature
-and humidex (combination of humidity and summer heat)
+inspired by xkcd. We can determine our ideal city by looking at wintertemperature
+and humidex (combination of humidity and summer heat). 
 
 I've seen major cities in the us (post by Maelle) and where to live in
 spain [by Claudia Guirao](https://twitter.com/claudiaguirao/status/931615734521909248).
 
-Now I have to make this for the Netherlands too. A small detail...
-
-The netherlands is quite small and has essentially one climate. 
+Now I have to make this for the Netherlands too. 
 
 endresult first:
 
 ![endresult](README_files/figure-markdown_github/tempprefnlbasedonus-1.png)
 
+A tiny detail...
 
+The Netherlands is quite small and has essentially one climate. If we don't 
+take the Caribean Netherlands into account.
 
-According to the [world travel guide ](https://www.worldtravelguide.net/guides/europe/netherlands/weather-climate-geography/ "trying to disable copying from your website is essentially useless, world travelguide... " ):
+According to the [world travel guide ](https://www.worldtravelguide.net/guides/europe/netherlands/weather-climate-geography/ "trying to disable copying from your website is essentially useless, world travelguide..., I just went to the source and copied it " ):
 
 ### Weather & climate
 
@@ -46,6 +47,8 @@ temperature, I would expect practically no differences between cities.
 
 
 Lets go:
+
+Wintertemperature
 
 First determine all the cities
 
@@ -170,7 +173,26 @@ We can also plot it with the margins of the US:
 
 ```{r tempprefnlbasedonus}
 xrange2 <- range(c(18,40))
-yrange2 <- range(c(-5,25))
+yrange2 <- range(c(-5,40))
+USA <- tribble(
+      ~NAME, ~humidex_avg, ~wintertemp,
+      "DETROIT, MI", 27, 0,
+      "NASHVILLE, TN", 33, 9,
+      "FORT MEYERS, FL",37, 20
+  )
+SPAIN <- tribble(
+      ~NAME, ~humidex_avg, ~wintertemp,
+      "MADRID, SPAIN", 27, 8,
+      "TENERIFE, SPAIN", 24, 13,
+      "BARCELONA, SPAIN",32, 10
+  )
+D_CARI <- tribble(
+      ~NAME, ~humidex_avg, ~wintertemp,
+      "Bonaire, Caribbean Netherlands", 27, calcHumx(29,76),
+      "Sint Eustatius, Caribbean Netherlands", 28, calcHumx(28,77),   
+      "Saba, Caribbean Netherlands",30, calcHumx(30,76)
+  )
+
 set.seed(3456)
 ggplot(result,
        aes(humidex_avg, wintertemp)) +
@@ -179,24 +201,19 @@ ggplot(result,
   geom_text_repel(aes(label = NAME),
                    family = "xkcd", 
                    max.iter = 50000, size = 2)+
-  geom_text_repel(data = tribble(
-      ~NAME, ~humidex_avg, ~wintertemp,
-      "DETROIT, MI", 27, 0,
-      "NASHVILLE, TN", 33, 9,
-      "FORT MEYERS, FL",37, 20
-  ), aes(humidex_avg, wintertemp, label = NAME), family = "xkcd", 
+  geom_text_repel(data = USA, aes(humidex_avg, wintertemp, label = NAME), family = "xkcd", 
                    max.iter = 50000, size = 2, color = "blue")+
-    geom_text_repel(data = tribble(
-      ~NAME, ~humidex_avg, ~wintertemp,
-      "MADRID, SPAIN", 27, 8,
-      "TENERIFE, SPAIN", 24, 13,
-      "BARCELONA, SPAIN",32, 10
-  ), aes(humidex_avg, wintertemp, label = NAME), family = "xkcd", 
+    geom_text_repel(data = SPAIN, aes(humidex_avg, wintertemp, label = NAME), family = "xkcd", 
                    max.iter = 50000, size = 2, color = "red")+
-    ggtitle("Where to live in NL based on your temperature preferences ",
-          subtitle = "Data from KNMI, 2016-2017, added Spain and US cities") +
-  xlab("Summer heat and humidity via Humidex")+
-  ylab("Winter temperature in Celsius degrees") +
+    geom_text_repel(data = D_CARI, aes(humidex_avg, wintertemp, label = NAME), family = "xkcd", 
+                   max.iter = 50000, size = 2, color = "orange")+
+    geom_point(data = D_CARI, aes(humidex_avg, wintertemp), color = "orange")+
+    labs(title = "Where to live in NL based on your temperature preferences ",
+          subtitle = "Data from KNMI, 2016-2017, added Spain and US cities",
+         x = "Summer heat and humidity via Humidex",
+         y = "Winter temperature in Celsius degrees",
+         caption = "includes Caribbean Netherlands Islands"
+             ) +
   xkcdaxis(xrange = xrange2,
            yrange = yrange2)+
   theme_xkcd() +
