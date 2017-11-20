@@ -229,11 +229,11 @@ ggplot(result,
     geom_text_repel(data = D_CARI, aes(humidex_avg, wintertemp, label = NAME), family = "xkcd", 
                    max.iter = 50000, size = 2, color = "orange")+
     geom_point(data = D_CARI, aes(humidex_avg, wintertemp), color = "orange")+
-    labs(title = "Where to live in NL based on your temperature preferences ",
+    labs(title = "Where to live in The Netherlands based on \nyour temperature preferences \nCompared with some places in Spain, Caribbean NL and USA",
           subtitle = "Data from KNMI, 2016-2017, added Spain and US cities",
          x = "Summer heat and humidity via Humidex",
          y = "Winter temperature in Celsius degrees",
-         caption = "includes Caribbean Netherlands Islands"
+         caption = "includes Caribbean Netherlands"
              ) +
   xkcdaxis(xrange = xrange2,
            yrange = yrange2)+
