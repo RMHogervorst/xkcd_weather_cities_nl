@@ -208,9 +208,9 @@ SPAIN <- tribble(
   )
 D_CARI <- tribble(
       ~NAME, ~humidex_avg, ~wintertemp,
-      "Bonaire, Caribbean Netherlands", 27, calcHumx(29,76),
-      "Sint Eustatius, Caribbean Netherlands", 28, calcHumx(28,77),   
-      "Saba, Caribbean Netherlands",30, calcHumx(30,76)
+      "Bonaire, Caribbean Netherlands", calcHumx(29,76), 27,
+      "Sint Eustatius, Caribbean Netherlands", calcHumx(28,77), 28,    
+      "Saba, Caribbean Netherlands",calcHumx(30,76), 30 
   )
 
 set.seed(3456)
